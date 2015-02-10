@@ -1,0 +1,6 @@
+_/
+*.deb
+obj/
+theos
+.theos/
+memscan
