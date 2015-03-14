@@ -4,7 +4,7 @@ Depends:
 Version: 1.0.1
 Architecture: iphoneos-arm
 Description: A memory scanning tool which uses mach_vm* to either dump memory or look for a specific sequence of bytes.
-Maintainer: Grant Douglas (@Hexploitable)
-Author: Grant Douglas (@Hexploitable)
+Maintainer: Hexploitable
+Author: Hexploitable
 Section: System
 Tag: role::hacker
