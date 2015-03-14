@@ -4,3 +4,4 @@ obj/
 theos
 .theos/
 memscan
+.DS_STORE
