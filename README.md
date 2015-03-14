@@ -1,4 +1,7 @@
 #MEMSCAN
+
+[![Build Status](https://travis-ci.org/hexploitable/MEMSCAN.svg?branch=master)](https://travis-ci.org/hexploitable/MEMSCAN)
+
 ![image](screenshots/memscan_banner.png)
 
 As far as the scanner is concerned, I'm finished with it. I'm going to do a final sweep and remove superfluous code and then I'll land the final commit.
