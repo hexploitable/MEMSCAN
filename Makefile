@@ -1,6 +1,6 @@
 export TARGET_CODESIGN_FLAGS="-Sentitlements.xml"
 export ARCHS = armv7 armv7s arm64
-export TARGET = iphone:clang:8.2:8.1
+export TARGET = iphone:clang:latest:8.0
 GO_EASY_ON_ME=1
 
 include theos/makefiles/common.mk
