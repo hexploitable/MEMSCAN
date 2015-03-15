@@ -9,8 +9,6 @@
 
 #include "colour_defs.h"
 
-const char *version = "1.0.1";
-
 //Just prints a gimmicky header + name + vers.
 #define BANNER \
     printf(red); \
@@ -71,4 +69,4 @@ const char *version = "1.0.1";
     printf("|__| |__|"); \
     printf("|_|  |__|\n"); \
     printf("\n%sAuthor: %sGrant Douglas (@Hexploitable)%s", none, cyan, none); \
-    printf("\nVersion: %s%s%s\n\n", cyan, version, none);
+    printf("\nVersion: %s%s%s\n\n", cyan, VERSION, none);

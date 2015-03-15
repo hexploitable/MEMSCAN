@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
-#include <mach/vm_map.h>
-#include <mach/vm_region.h>
 #include <mach-o/dyld_images.h>
 #include <string.h>
 #include <limits.h>
@@ -46,41 +44,48 @@ static void printUsage(void)
 
 /*
     Scans a region of memory begining at addr, of size "size"
-    shouldPrint == 1 means we're scanning for an object.
-    shouldPrint == 0 means we're dumping to a file.
+    shouldPrint == 1 means we're dumping to a file.
+    shouldPrint == 0 means we're scanning for an object. 
 */
-static mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type_number_t size, int shouldPrint)
+static new_vm_address_t *scanMem(int pid, new_vm_address_t addr, mach_msg_type_number_t size, int shouldPrint)
 {
+    #ifdef __arm64__
+        vm_offset_t strt = 0;
+        mach_msg_type_number_t sz = 0;
+    #else
+        pointer_t strt;
+        uint32_t sz = 0;
+    #endif
+    //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
+
     task_t t;
     task_for_pid(mach_task_self(), pid, &t);
     mach_msg_type_number_t dataCnt = size;
-    mach_vm_address_t max = addr + size;
+    new_vm_address_t max = addr + size;
     int bytesRead = 0;
     kern_return_t kr_val;
-    pointer_t strt;
-    mach_vm_address_t memStart = 0;
-    uint32_t sz = 0;
+    new_vm_address_t memStart = 0;
+    
     FILE *f = fopen(o_File, "w+");
 
     if (shouldPrint == 1)
     {
-      	unsigned char *readbuffer = NULL;
-      	readbuffer = (unsigned char*)malloc(size);
-
-  	    kr_val = vm_read(t, addr, size, &strt, &sz);
+        #ifdef __arm64__
+            kr_val = new_vm_read(t, addr, size, &strt, &sz);
+        #else
+            kr_val = new_vm_read(t, addr, size, &strt, &sz);
+        #endif
 
         if (kr_val == KERN_SUCCESS)
         {
-        	  printf("Size of read: %d\n", sz);
-            memcpy(readbuffer, (const void*)strt, sz);
-            printf("readbuffer: %02x\n", readbuffer);
+        	printf("Size of read: %d\n", sz);
         }
         else
         {
         	  printf("KR: %d\n", kr_val);
         	  printf("Size: %d\n", size);
         }
-        fwrite(readbuffer, size, 1, f);
+        fwrite((const void*)strt, size, 1, f);
         fclose(f);
         exit(0);
     }
@@ -90,21 +95,28 @@ static mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type
         FILE *f = fopen(o_File, "w+");
         while (bytesRead < size)
         {
-            if ((kr_val = vm_read(t, addr, sizeof(unsigned char), &strt, &sz)) == KERN_SUCCESS)
+
+            #ifdef __arm64__
+                kr_val = new_vm_read(t, addr, sizeof(unsigned char), &strt, &sz);
+            #else
+                kr_val = new_vm_read(t, addr, sizeof(unsigned char), &strt, &sz);
+            #endif
+
+            if (kr_val == KERN_SUCCESS)
             {
                 memcpy(buffer, (const void *)strt, sz);
                 if (memcmp(buffer, nBuffer, needleLen) == 0)
                 {
                     fflush(stdout);
-                    return (unsigned long long *)addr;
+                    return (new_vm_address_t *)addr;
                 }
                 else
-                    printf("[%s-%s] %s%p%s ---> vm_read()\r", red, none, redU, addr, none);
+                    printf("[%s-%s] %s%p%s ---> mach_vm_read()\r", red, none, redU, addr, none);
                 fflush(stdout);
             }
             else
             {
-                printf("[%s-%s] %s%p%s ---> vm_read()\r", red, none, redU, addr, none);
+                printf("[%s-%s] %s%p%s ---> mach_vm_read()\r", red, none, redU, addr, none);
                 fflush(stdout);
             }
             addr += sizeof(unsigned char);
@@ -123,16 +135,24 @@ static mach_vm_address_t *scanMem(int pid, mach_vm_address_t addr, mach_msg_type
     For each, it executes scanMem.
     If scanning for objects, it returns a ptr.
 */
-static unsigned int *getMemRegions(task_t task, vm_address_t address, int shouldPrint)
+static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int shouldPrint)
 {
+    #ifdef __arm64__
+        mach_vm_size_t size;
+        mach_vm_size_t fullSize = 0;
+    #else
+        vm_size_t size;
+        vm_size_t fullSize = 0;
+    #endif
+    //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
     kern_return_t kret;
     vm_region_basic_info_data_t info;
-    vm_size_t size;
+    
     mach_port_t object_name;
     mach_msg_type_number_t count;
-    vm_address_t firstRegionBegin;
-    vm_address_t lastRegionEnd;
-    vm_size_t fullSize = 0;
+    new_vm_address_t firstRegionBegin;
+    new_vm_address_t lastRegionEnd;
+    
     count = VM_REGION_BASIC_INFO_COUNT_64;
     int regionCount = 0;
     int flag = 0;
@@ -142,15 +162,23 @@ static unsigned int *getMemRegions(task_t task, vm_address_t address, int should
     while (flag == 0)
     {
         char *name = "Region: ";
-        char cated_string[15];
+        char cated_string[17];
         sprintf(cated_string,"%s%d", name, regionCount);
         if (verbose)
+        {
             printf("Region: %d\n", regionCount);
+        }
         FILE *f = fopen(o_File, "a+");
-        fwrite(cated_string, 10, 1, f);
+        fwrite(cated_string, sizeof(cated_string), 1, f);
 
         //Attempts to get the region info for given task
-        kret = vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
+        //vm_map_t, new_vm_address_t *, mach_vm_size_t *, vm_region_flavor_t, vm_region_info_t, mach_msg_type_number_t *, mach_port_t *
+        #ifdef __arm64__
+            kret = new_vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
+        #else
+            kret = new_vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
+        #endif
+        
         if (kret == KERN_SUCCESS)
         {
             if (regionCount == 0)
@@ -163,25 +191,34 @@ static unsigned int *getMemRegions(task_t task, vm_address_t address, int should
                 task_t t;
                 task_for_pid(mach_task_self(), pid, &t);
                 kern_return_t kr_val;
-                pointer_t strt;
-                uint32_t sz = 0;
-                unsigned char *readbuffer = NULL;
-                readbuffer = (unsigned char*)malloc(size);
+                #ifdef __arm64__
+                    vm_offset_t strt = 0;
+                    mach_msg_type_number_t sz = 0;
+                #else
+                    pointer_t strt;
+                    uint32_t sz = 0;
+                #endif
+                //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
+                
 
-                kr_val = vm_read(t, address, size, &strt, &sz);
+                #ifdef __arm64__
+                    kr_val = new_vm_read(t, address, size, &strt, &sz);
+                #else
+                    kr_val = new_vm_read(t, address, size, &strt, &sz);
+                #endif                
 
                 if (kr_val == KERN_SUCCESS)
                 {
                     if (verbose)
                         printf("Region start: %p\nSize of read: %d\n\n", address, sz);
-                    memcpy(readbuffer, (const void*)strt, sz);
+                    //memcpy(readbuffer, (const void*)(pointer_t)strt, sz);
                 }
                 else
                 {
                     if (verbose)
                         printf("Region start: %p\nSize of read: %d\n\n", address, sz);
                 }
-                fwrite(readbuffer, size, 1, f);
+                fwrite((const void*)strt, sz, 1, f);
                 if (verbose)
                     printf("[%si%s] Memory dumped: %s\r\n", yellow, none, cated_string);
 
@@ -211,7 +248,7 @@ static unsigned int *getMemRegions(task_t task, vm_address_t address, int should
 int main(int argc, char** argv) {
     kern_return_t rc;
     mach_port_t task;
-    mach_vm_address_t addr = 1;
+    new_vm_address_t addr = 1;
 
     int shouldDump = 0;
     char *i_File = NULL;
