@@ -14,10 +14,6 @@ To build MEMSCAN, you will need to have theos installed. Well, you don't really 
 Once Theos is installed, simply navigate to the MEMSCAN folder in terminal and run:<br /><br />
 `make package install`
 
-Next you need to sign the utility with the appropriate entitlements, to make this easy for you, I created a small script that you can run:
-
-`./postInstall.sh`
-
 ##Usage
 ###Dumping the memory of a process
 1. Obtain the target process PID, using `ps`.
