@@ -1,6 +1,6 @@
 /*
-  @Author:  Grant Douglas <@Hexploitable>
-  @Title:   MEMSCAN
+  @Author:  Jolly Boy John <@jollyboyjohn1>
+  @Title:   MEMSCAN FOR REAL
   @Desc:    A tool for memory analysis of iOS and OSX applications
   @Vers:    1.0.1
 */
@@ -68,5 +68,5 @@
     printf("|_______|"); \
     printf("|__| |__|"); \
     printf("|_|  |__|\n"); \
-    printf("\n%sAuthor: %sGrant Douglas (@Hexploitable)%s", none, cyan, none); \
+    printf("\n%sAuthor: %sJolly Boy John (@jollyboyjohn1)%s", none, cyan, none); \
     printf("\nVersion: %s%s%s\n\n", cyan, VERSION, none);

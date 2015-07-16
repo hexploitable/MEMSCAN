@@ -1,4 +1,4 @@
-#MEMSCAN
+#MEMSCAN FOR REAL
 
 [![Build Status](https://travis-ci.org/hexploitable/MEMSCAN.svg?branch=master)](https://travis-ci.org/hexploitable/MEMSCAN)
 
@@ -6,12 +6,12 @@
 
 As far as the scanner is concerned, I'm finished with it. I'm going to do a final sweep and remove superfluous code and then I'll land the final commit.
 
-Tweet me: `@Hexploitable`
+Tweet me: `@jollyboyjohn1`
 
 ##Building
-To build MEMSCAN, you will need to have theos installed. Well, you don't really need it but it makes life easier.
+To build MEMSCAN FOR REAL, you will need to have theos installed. Well, you don't really need it but it makes life easier.
 
-Once Theos is installed, simply navigate to the MEMSCAN folder in terminal and run:<br /><br />
+Once Theos is installed, simply navigate to the MEMSCAN FOR REAL folder in terminal and run:<br /><br />
 `make package install`
 
 ##Usage
@@ -36,7 +36,7 @@ e.g:
 
 	`./memscan -p 1234 -s ./needle`
 
-4. MEMSCAN should then print the address where the needle is located in memory.
+4. MEMSCAN FOR REAL should then print the address where the needle is located in memory.
 
 
 ##Resources
@@ -48,6 +48,6 @@ The most useful resource was a book called "Mac OS X Internals: A Systems Approa
 It's been brought to my attention there is another stack of tools which does similar things, called [Radare](https://github.com/radare/radare2), which you should check out as it's pretty cool.
 
 ##Contact
-For any issues or concerns, contact me on Twitter: `@Hexploitable`.
+For any issues or concerns, contact me on Twitter: `@jollyboyjohn1`.
 <br/>
 If you need more than 140 characters, open an issue here.
