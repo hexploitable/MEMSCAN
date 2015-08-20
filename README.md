@@ -8,7 +8,7 @@ As far as the scanner is concerned, I'm finished with it. I'm going to do a fina
 
 Tweet me: `@Hexploitable`
 
-##Building
+##Building MEMSCAN
 To build MEMSCAN, you will need to have theos installed. Well, you don't really need it but it makes life easier.
 
 Once Theos is installed, simply navigate to the MEMSCAN folder in terminal and run:<br /><br />
