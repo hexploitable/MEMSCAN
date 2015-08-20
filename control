@@ -1,7 +1,7 @@
 Package: com.hexplo.it.memscan
 Name: memscan
 Depends: 
-Version: 1.2
+Version: 1.2.1
 Architecture: iphoneos-arm
 Description: A memory scanning tool which uses mach_vm* to either dump memory or look for a specific sequence of bytes.
 Maintainer: Hexploitable
