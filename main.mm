@@ -22,11 +22,10 @@
 #include "vm_defs.h"
 #include "banner.h"
 
-
 //  "Globals"
 static int g_pid = 0;
 static unsigned char *nBuffer;
-static char *o_File = NULL;
+const char *o_File = NULL;
 static int pid = 0;
 static int needleLen = 0;
 static int verbose = 0;
@@ -45,7 +44,7 @@ static void printUsage(void)
 /*
     Scans a region of memory begining at addr, of size "size"
     shouldPrint == 1 means we're dumping to a file.
-    shouldPrint == 0 means we're scanning for an object. 
+    shouldPrint == 0 means we're scanning for an object.
 */
 static new_vm_address_t *scanMem(int pid, new_vm_address_t addr, mach_msg_type_number_t size, int shouldPrint)
 {
@@ -56,25 +55,17 @@ static new_vm_address_t *scanMem(int pid, new_vm_address_t addr, mach_msg_type_n
         pointer_t strt;
         uint32_t sz = 0;
     #endif
-    //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
 
     task_t t;
     task_for_pid(mach_task_self(), pid, &t);
-    mach_msg_type_number_t dataCnt = size;
-    new_vm_address_t max = addr + size;
     int bytesRead = 0;
     kern_return_t kr_val;
-    new_vm_address_t memStart = 0;
-    
+
     FILE *f = fopen(o_File, "w+");
 
     if (shouldPrint == 1)
     {
-        #ifdef __arm64__
-            kr_val = new_vm_read(t, addr, size, &strt, &sz);
-        #else
-            kr_val = new_vm_read(t, addr, size, &strt, &sz);
-        #endif
+        kr_val = new_vm_read(t, addr, size, &strt, &sz);
 
         if (kr_val == KERN_SUCCESS)
         {
@@ -92,31 +83,25 @@ static new_vm_address_t *scanMem(int pid, new_vm_address_t addr, mach_msg_type_n
     else
     {
         unsigned char buffer[needleLen];
-        FILE *f = fopen(o_File, "w+");
         while (bytesRead < size)
         {
-
-            #ifdef __arm64__
-                kr_val = new_vm_read(t, addr, sizeof(unsigned char), &strt, &sz);
-            #else
-                kr_val = new_vm_read(t, addr, sizeof(unsigned char), &strt, &sz);
-            #endif
+            kr_val = new_vm_read(t, addr, sizeof(unsigned char), &strt, &sz);
 
             if (kr_val == KERN_SUCCESS)
             {
-                memcpy(buffer, (const void *)strt, sz);
+                memcpy(buffer, (const void *)strt, 100);
                 if (memcmp(buffer, nBuffer, needleLen) == 0)
                 {
                     fflush(stdout);
                     return (new_vm_address_t *)addr;
                 }
                 else
-                    printf("[%s-%s] %s%p%s ---> mach_vm_read()\r", red, none, redU, addr, none);
+                    printf("[%s-%s] %s%lu%s ---> mach_vm_read()\r", red, none, redU, addr, none);
                 fflush(stdout);
             }
             else
             {
-                printf("[%s-%s] %s%p%s ---> mach_vm_read()\r", red, none, redU, addr, none);
+                printf("[%s-%s] %s%lu%s ---> mach_vm_read()\r", red, none, redU, addr, none);
                 fflush(stdout);
             }
             addr += sizeof(unsigned char);
@@ -147,12 +132,12 @@ static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int sh
     //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
     kern_return_t kret;
     vm_region_basic_info_data_t info;
-    
+
     mach_port_t object_name;
     mach_msg_type_number_t count;
     new_vm_address_t firstRegionBegin;
     new_vm_address_t lastRegionEnd;
-    
+
     count = VM_REGION_BASIC_INFO_COUNT_64;
     int regionCount = 0;
     int flag = 0;
@@ -161,7 +146,7 @@ static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int sh
 
     while (flag == 0)
     {
-        char *name = "Region: ";
+        const char *name = "Region: ";
         char cated_string[17];
         sprintf(cated_string,"%s%d", name, regionCount);
         if (verbose)
@@ -172,13 +157,8 @@ static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int sh
         fwrite(cated_string, sizeof(cated_string), 1, f);
 
         //Attempts to get the region info for given task
-        //vm_map_t, new_vm_address_t *, mach_vm_size_t *, vm_region_flavor_t, vm_region_info_t, mach_msg_type_number_t *, mach_port_t *
-        #ifdef __arm64__
-            kret = new_vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
-        #else
-            kret = new_vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
-        #endif
-        
+        kret = new_vm_region(task, &address, &size, VM_REGION_BASIC_INFO, (vm_region_info_t) &info, &count, &object_name);
+
         if (kret == KERN_SUCCESS)
         {
             if (regionCount == 0)
@@ -198,25 +178,17 @@ static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int sh
                     pointer_t strt;
                     uint32_t sz = 0;
                 #endif
-                //vm_map_t, mach_vm_address_t, mach_vm_size_t, mach_vm_address_t, mach_vm_size_t *
-                
 
-                #ifdef __arm64__
-                    kr_val = new_vm_read(t, address, size, &strt, &sz);
-                #else
-                    kr_val = new_vm_read(t, address, size, &strt, &sz);
-                #endif                
-
+                kr_val = new_vm_read(t, address, size, &strt, &sz);
                 if (kr_val == KERN_SUCCESS)
                 {
                     if (verbose)
-                        printf("Region start: %p\nSize of read: %d\n\n", address, sz);
-                    //memcpy(readbuffer, (const void*)(pointer_t)strt, sz);
+                        printf("Region start: %lu\nSize of read: %d\n\n", address, sz);
                 }
                 else
                 {
                     if (verbose)
-                        printf("Region start: %p\nSize of read: %d\n\n", address, sz);
+                        printf("Region start: %lu\nSize of read: %d\n\n", address, sz);
                 }
                 fwrite((const void*)strt, sz, 1, f);
                 if (verbose)
@@ -237,7 +209,7 @@ static unsigned int *getMemRegions(task_t task, new_vm_address_t address, int sh
         exit(0);
     }
     lastRegionEnd = address;
-    printf("[%si%s] Proc Space: %s%p%s - %s%p%s\n", yellow, none, yellowU, firstRegionBegin, none, blueU, lastRegionEnd, none);
+    printf("[%si%s] Proc Space: %s%lu%s - %s%lu%s\n", yellow, none, yellowU, firstRegionBegin, none, blueU, lastRegionEnd, none);
 
     unsigned int *ptrToFunc = (unsigned int *)scanMem(pid, firstRegionBegin, fullSize, shouldPrint);
     return ptrToFunc;
@@ -298,7 +270,7 @@ int main(int argc, char** argv) {
         rc = task_for_pid(mach_task_self(), pid, &task);
         if (rc)
         {
-            fprintf(stderr, "[%s-%s] task_for_pid() failed, error %d - %s%s", red, none, rc, red, mach_error_string(rc), none);
+            fprintf(stderr, "[%s-%s] task_for_pid() failed, error %d - %s%s%s", red, none, rc, red, mach_error_string(rc), none);
             exit(1);
         }
 
@@ -334,7 +306,7 @@ int main(int argc, char** argv) {
         rc = task_for_pid(mach_task_self(), pid, &task);
         if (rc)
         {
-            fprintf(stderr, "[%s-%s] task_for_pid() failed, error %d - %s%s", red, none, rc, red, mach_error_string(rc), none);
+            fprintf(stderr, "[%s-%s] task_for_pid() failed, error %d - %s%s%s", red, none, rc, red, mach_error_string(rc), none);
             exit(1);
         }
 
@@ -357,6 +329,8 @@ int main(int argc, char** argv) {
         printf("[%si%s] Task: %s%d%s\n", yellow, none, blueU, task, none);
         printf("[%si%s] Attempting to dump all strings found in memory\n", yellow, none);
         unsigned int *sym = getMemRegions(task, addr, 1);
+        if (sym != NULL)
+          printf("[%si%s] Exiting", yellow, none);
     }
     else
     {

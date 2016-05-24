@@ -10,7 +10,7 @@ memscan_FILES = main.mm
 
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
-ADDITIONAL_CFLAGS = -Wno-format -Wno-error -Wno-unused-variable -Wno-c++11-compat-deprecated-writable-strings -Wno-unused-value -DVERSION=\"$(GIT_VERSION)\"
+ADDITIONAL_CFLAGS = -DVERSION=\"$(GIT_VERSION)\"
 
 include $(THEOS_MAKE_PATH)/tool.mk
 
